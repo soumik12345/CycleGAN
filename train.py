@@ -10,6 +10,37 @@ class Trainer:
     def __init__(self, configs):
         self.configs = configs
 
+        self.loss_gen_total_metrics = tf.keras.metrics.Mean(
+            'loss_gen_total_metrics', dtype=tf.float32
+        )
+        self.loss_dis_total_metrics = tf.keras.metrics.Mean(
+            'loss_dis_total_metrics', dtype=tf.float32
+        )
+        self.loss_cycle_a2b2a_metrics = tf.keras.metrics.Mean(
+            'loss_cycle_a2b2a_metrics', dtype=tf.float32
+        )
+        self.loss_cycle_b2a2b_metrics = tf.keras.metrics.Mean(
+            'loss_cycle_b2a2b_metrics', dtype=tf.float32
+        )
+        self.loss_gen_a2b_metrics = tf.keras.metrics.Mean(
+            'loss_gen_a2b_metrics', dtype=tf.float32
+        )
+        self.loss_gen_b2a_metrics = tf.keras.metrics.Mean(
+            'loss_gen_b2a_metrics', dtype=tf.float32
+        )
+        self.loss_dis_b_metrics = tf.keras.metrics.Mean(
+            'loss_dis_b_metrics', dtype=tf.float32
+        )
+        self.loss_dis_a_metrics = tf.keras.metrics.Mean(
+            'loss_dis_a_metrics', dtype=tf.float32
+        )
+        self.loss_id_b2a_metrics = tf.keras.metrics.Mean(
+            'loss_id_b2a_metrics', dtype=tf.float32
+        )
+        self.loss_id_a2b_metrics = tf.keras.metrics.Mean(
+            'loss_id_a2b_metrics', dtype=tf.float32
+        )
+
         self.mse_loss = tf.keras.losses.MeanSquaredError()
         self.mae_loss = tf.keras.losses.MeanAbsoluteError()
 
