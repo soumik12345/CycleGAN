@@ -1,3 +1,4 @@
+import os
 import wandb
 from tqdm import tqdm
 import tensorflow as tf
@@ -96,11 +97,6 @@ class Trainer:
 
         self.checkpoint, self.checkpoint_manager = self.make_checkpoints()
 
-        log_dir = 'logs/{}/train'.format(
-            self.configs['dataset_configs']['dataset_name']
-        )
-        self.summary_writer = tf.summary.create_file_writer(log_dir)
-
     def calculate_gan_loss(self, prediction, is_real):
         if is_real:
             return self.mse_loss(prediction, tf.ones_like(prediction))
@@ -127,8 +123,11 @@ class Trainer:
         self.loss_id_b2a_metrics.reset_states()
 
     def make_checkpoints(self):
-        checkpoint_dir = './checkpoints-{}'.format(
-            self.configs['dataset_configs']['dataset_name']
+        checkpoint_dir = os.path.join(
+            wandb.run.dir,
+            './checkpoints-{}'.format(
+                self.configs['dataset_configs']['dataset_name']
+            )
         )
         checkpoint = tf.train.Checkpoint(
             generator_a2b=self.generator_a2b,
@@ -264,76 +263,29 @@ class Trainer:
         )
         return gen_loss_dict, dis_loss_dict
 
-    def log_metrics(self, epoch):
-        with self.summary_writer.as_default():
-            tf.summary.scalar(
-                'loss_gen_a2b',
-                self.loss_gen_a2b_metrics.result(),
-                step=epoch
-            )
-            tf.summary.scalar(
-                'loss_gen_b2a',
-                self.loss_gen_b2a_metrics.result(),
-                step=epoch
-            )
-            tf.summary.scalar(
-                'loss_dis_b',
-                self.loss_dis_b_metrics.result(),
-                step=epoch
-            )
-            tf.summary.scalar(
-                'loss_dis_a',
-                self.loss_dis_a_metrics.result(),
-                step=epoch
-            )
-            tf.summary.scalar(
-                'loss_id_a2b',
-                self.loss_id_a2b_metrics.result(),
-                step=epoch
-            )
-            tf.summary.scalar(
-                'loss_id_b2a',
-                self.loss_id_b2a_metrics.result(),
-                step=epoch
-            )
-            tf.summary.scalar(
-                'loss_gen_total',
-                self.loss_gen_total_metrics.result(),
-                step=epoch
-            )
-            tf.summary.scalar(
-                'loss_dis_total',
-                self.loss_dis_total_metrics.result(),
-                step=epoch
-            )
-            tf.summary.scalar(
-                'loss_cycle_a2b2a',
-                self.loss_cycle_a2b2a_metrics.result(),
-                step=epoch
-            )
-            tf.summary.scalar(
-                'loss_cycle_b2a2b',
-                self.loss_cycle_b2a2b_metrics.result(),
-                step=epoch
-            )
-            tf.summary.scalar(
-                'gen_learning_rate',
-                self.gen_lr_scheduler.current_learning_rate,
-                step=epoch
-            )
-            tf.summary.scalar(
-                'dis_learning_rate',
-                self.dis_lr_scheduler.current_learning_rate,
-                step=epoch
-            )
-            self.reset_metrics()
+    def log_metrics(self):
+        wandb.log({
+            'loss_gen_a2b': self.loss_gen_a2b_metrics.result(),
+            'loss_gen_b2a': self.loss_gen_b2a_metrics.result(),
+            'loss_dis_b': self.loss_dis_b_metrics.result(),
+            'loss_dis_a': self.loss_dis_a_metrics.result(),
+            'loss_id_a2b': self.loss_id_a2b_metrics.result(),
+            'loss_id_b2a': self.loss_id_b2a_metrics.result(),
+            'loss_gen_total': self.loss_gen_total_metrics.result(),
+            'loss_dis_total': self.loss_dis_total_metrics.result(),
+            'loss_cycle_a2b2a': self.loss_cycle_a2b2a_metrics.result(),
+            'loss_cycle_b2a2b': self.loss_cycle_b2a2b_metrics.result(),
+            'gen_learning_rate': self.gen_lr_scheduler.current_learning_rate,
+            'dis_learning_rate': self.dis_lr_scheduler.current_learning_rate
+        })
+        self.reset_metrics()
 
     def train(self):
         for epoch in range(self.checkpoint.epoch + 1, self.configs['epochs'] + 1):
             print('Epoch:', epoch)
             for step, batch in tqdm(enumerate(self.dataset)):
                 self.train_step(batch[0], batch[1])
-            self.log_metrics(epoch)
+            self.log_metrics()
             self.checkpoint.epoch.assign_add(1)
             if epoch % 2 == 0:
                 save_path = self.checkpoint_manager.save()
