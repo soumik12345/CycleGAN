@@ -1,4 +1,5 @@
 import tensorflow as tf
+from src.utils import ImagePool
 from src.dataset import DataLoader
 from src.scheduler import LinearDecay
 from src.dataset.utils import count_batches
@@ -9,6 +10,9 @@ class Trainer:
 
     def __init__(self, configs):
         self.configs = configs
+
+        self.fake_pool_b2a = ImagePool(self.configs['pool_size'])
+        self.fake_pool_a2b = ImagePool(self.configs['pool_size'])
 
         self.loss_gen_total_metrics = tf.keras.metrics.Mean(
             'loss_gen_total_metrics', dtype=tf.float32
@@ -228,3 +232,13 @@ class Trainer:
         }
 
         return loss_dict
+
+    def train_step(self, images_a, images_b, epoch, step):
+        fake_a2b, fake_b2a, gen_loss_dict = self.train_generator(images_a, images_b)
+        fake_b2a_from_pool = self.fake_pool_b2a.query(fake_b2a)
+        fake_a2b_from_pool = self.fake_pool_a2b.query(fake_a2b)
+        dis_loss_dict = self.train_discriminator(
+            images_a, images_b,
+            fake_a2b_from_pool, fake_b2a_from_pool
+        )
+        return gen_loss_dict, dis_loss_dict
