@@ -246,7 +246,7 @@ class Trainer:
 
         return loss_dict
 
-    def train_step(self, images_a, images_b, epoch, step):
+    def train_step(self, images_a, images_b):
         fake_a2b, fake_b2a, gen_loss_dict = self.train_generator(images_a, images_b)
         fake_b2a_from_pool = self.fake_pool_b2a.query(fake_b2a)
         fake_a2b_from_pool = self.fake_pool_a2b.query(fake_a2b)
@@ -319,3 +319,17 @@ class Trainer:
                 step=epoch
             )
             self.reset_metrics()
+
+    def train(self):
+        for epoch in range(self.checkpoint.epoch + 1, self.configs['epochs'] + 1):
+            for (step, batch) in enumerate(self.dataset):
+                self.train_step(batch[0], batch[1], epoch, step)
+            self.log_metrics(epoch)
+            self.checkpoint.epoch.assign_add(1)
+            if epoch % 2 == 0:
+                save_path = self.checkpoint_manager.save()
+                print(
+                    "Saved checkpoint for epoch {}: {}".format(
+                        int(self.checkpoint.epoch), save_path
+                    )
+                )
