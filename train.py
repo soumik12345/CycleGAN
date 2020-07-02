@@ -333,3 +333,26 @@ class Trainer:
                         int(self.checkpoint.epoch), save_path
                     )
                 )
+
+
+if __name__ == '__main__':
+    configurations = {
+        'pool_size': 50,
+        'input_size': 256,
+        'residual_blocks': 9,
+        'lr': 2e-4,
+        'epochs': 200,
+        'decay_epochs': 100,
+        'adam_beta_1': 0.5,
+        'dataset_configs': {
+            'dataset_name': 'horse2zebra',
+            'resize_size': 286,
+            'crop_size': 256,
+            'shuffle_size': 1000,
+            'batch_size': 1
+        },
+        'lambda_cycle': 10.0,
+        'lambda_id': 5.0,
+    }
+    trainer = Trainer(configurations)
+    trainer.train()
