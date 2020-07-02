@@ -1,3 +1,4 @@
+from tqdm import tqdm
 import tensorflow as tf
 from src.utils import ImagePool
 from src.dataset import DataLoader
@@ -322,7 +323,8 @@ class Trainer:
 
     def train(self):
         for epoch in range(self.checkpoint.epoch + 1, self.configs['epochs'] + 1):
-            for (step, batch) in enumerate(self.dataset):
+            print('Epoch:', epoch)
+            for index, (step, batch) in tqdm(enumerate(self.dataset)):
                 self.train_step(batch[0], batch[1], epoch, step)
             self.log_metrics(epoch)
             self.checkpoint.epoch.assign_add(1)
