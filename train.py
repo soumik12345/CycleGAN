@@ -265,7 +265,7 @@ class Trainer:
         return gen_loss_dict, dis_loss_dict
 
     def log_metrics(self, epoch):
-        with self.train_summary_writer.as_default():
+        with self.summary_writer.as_default():
             tf.summary.scalar(
                 'loss_gen_a2b',
                 self.loss_gen_a2b_metrics.result(),
@@ -346,6 +346,8 @@ class Trainer:
 
 if __name__ == '__main__':
     configurations = {
+        'project_name': 'cyclegan',
+        'experiment_name': 'horse2zebra',
         'pool_size': 50,
         'input_size': 256,
         'residual_blocks': 9,
