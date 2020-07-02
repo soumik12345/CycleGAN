@@ -77,7 +77,7 @@ class Trainer:
             self.generator_lr_scheduler,
             self.configs['adam_beta_1']
         )
-        self.dicriminator_optimizer = tf.keras.optimizers.Adam(
+        self.discriminator_optimizer = tf.keras.optimizers.Adam(
             self.discriminator_lr_scheduler,
             self.configs['adam_beta_1']
         )
@@ -111,7 +111,7 @@ class Trainer:
             discriminator_b=self.discriminator_b,
             discriminator_a=self.discriminator_a,
             optimizer_gen=self.generator_optimizer,
-            optimizer_dis=self.dicriminator_optimizer,
+            optimizer_dis=self.discriminator_optimizer,
             epoch=tf.Variable(0)
         )
         checkpoint_manager = tf.train.CheckpointManager(
@@ -184,3 +184,47 @@ class Trainer:
             'loss_gen_total': loss_gen_total,
         }
         return fake_a2b, fake_b2a, loss_dict
+
+    @tf.function
+    def train_discriminator(self, images_a, images_b, fake_a2b, fake_b2a):
+        real_a = images_a
+        real_b = images_b
+
+        with tf.GradientTape() as tape:
+            # Discriminator A should classify real_a as A
+            loss_gan_dis_a_real = self.calculate_gan_loss(
+                self.discriminator_a(real_a, training=True), True
+            )
+            # Discriminator A should classify generated fake_b2a as not A
+            loss_gan_dis_a_fake = self.calculate_gan_loss(
+                self.discriminator_a(fake_b2a, training=True), False
+            )
+            # Discriminator B should classify real_b as B
+            loss_gan_dis_b_real = self.calculate_gan_loss(
+                self.discriminator_b(real_b, training=True), True)
+            # Discriminator B should classify generated fake_a2b as not B
+            loss_gan_dis_b_fake = self.calculate_gan_loss(
+                self.discriminator_b(fake_a2b, training=True), False
+            )
+
+            # Total discriminator loss
+            loss_dis_a = (loss_gan_dis_a_real + loss_gan_dis_a_fake) * 0.5
+            loss_dis_b = (loss_gan_dis_b_real + loss_gan_dis_b_fake) * 0.5
+            loss_dis_total = loss_dis_a + loss_dis_b
+
+        trainable_variables = self.discriminator_a.trainable_variables + self.discriminator_b.trainable_variables
+        gradient_dis = tape.gradient(loss_dis_total, trainable_variables)
+        self.discriminator_optimizer.apply_gradients(zip(gradient_dis, trainable_variables))
+
+        # Metrics
+        self.loss_dis_a_metrics(loss_dis_a)
+        self.loss_dis_b_metrics(loss_dis_b)
+        self.loss_dis_total_metrics(loss_dis_total)
+
+        loss_dict = {
+            'loss_dis_b': loss_dis_b,
+            'loss_dis_a': loss_dis_a,
+            'loss_dis_total': loss_dis_total
+        }
+
+        return loss_dict
