@@ -88,6 +88,11 @@ class Trainer:
 
         self.checkpoint, self.checkpoint_manager = self.make_checkpoints()
 
+        log_dir = 'logs/{}/train'.format(
+            self.configs['dataset_configs']['dataset_name']
+        )
+        self.summary_writer = tf.summary.create_file_writer(log_dir)
+
     def calculate_gan_loss(self, prediction, is_real):
         if is_real:
             return self.mse_loss(prediction, tf.ones_like(prediction))
@@ -104,6 +109,14 @@ class Trainer:
         data_loader = DataLoader(self.configs['dataset_configs'])
         dataset = data_loader.make_datasets()
         return dataset
+
+    def reset_metrics(self):
+        self.loss_gen_a2b_metrics.reset_states()
+        self.loss_gen_b2a_metrics.reset_states()
+        self.loss_dis_b_metrics.reset_states()
+        self.loss_dis_a_metrics.reset_states()
+        self.loss_id_a2b_metrics.reset_states()
+        self.loss_id_b2a_metrics.reset_states()
 
     def make_checkpoints(self):
         checkpoint_dir = './checkpoints-{}'.format(
@@ -242,3 +255,67 @@ class Trainer:
             fake_a2b_from_pool, fake_b2a_from_pool
         )
         return gen_loss_dict, dis_loss_dict
+
+    def log_metrics(self, epoch):
+        with self.train_summary_writer.as_default():
+            tf.summary.scalar(
+                'loss_gen_a2b',
+                self.loss_gen_a2b_metrics.result(),
+                step=epoch
+            )
+            tf.summary.scalar(
+                'loss_gen_b2a',
+                self.loss_gen_b2a_metrics.result(),
+                step=epoch
+            )
+            tf.summary.scalar(
+                'loss_dis_b',
+                self.loss_dis_b_metrics.result(),
+                step=epoch
+            )
+            tf.summary.scalar(
+                'loss_dis_a',
+                self.loss_dis_a_metrics.result(),
+                step=epoch
+            )
+            tf.summary.scalar(
+                'loss_id_a2b',
+                self.loss_id_a2b_metrics.result(),
+                step=epoch
+            )
+            tf.summary.scalar(
+                'loss_id_b2a',
+                self.loss_id_b2a_metrics.result(),
+                step=epoch
+            )
+            tf.summary.scalar(
+                'loss_gen_total',
+                self.loss_gen_total_metrics.result(),
+                step=epoch
+            )
+            tf.summary.scalar(
+                'loss_dis_total',
+                self.loss_dis_total_metrics.result(),
+                step=epoch
+            )
+            tf.summary.scalar(
+                'loss_cycle_a2b2a',
+                self.loss_cycle_a2b2a_metrics.result(),
+                step=epoch
+            )
+            tf.summary.scalar(
+                'loss_cycle_b2a2b',
+                self.loss_cycle_b2a2b_metrics.result(),
+                step=epoch
+            )
+            tf.summary.scalar(
+                'gen_learning_rate',
+                self.gen_lr_scheduler.current_learning_rate,
+                step=epoch
+            )
+            tf.summary.scalar(
+                'dis_learning_rate',
+                self.dis_lr_scheduler.current_learning_rate,
+                step=epoch
+            )
+            self.reset_metrics()
