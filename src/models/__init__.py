@@ -2,13 +2,13 @@ import tensorflow as tf
 from .blocks import ReflectionPad2d, ResidualBlock
 
 
-def Generator(n_res_blocks=9):
+def Generator(input_size=256, n_res_blocks=9):
     model = tf.keras.Sequential()
 
     # Encoding
     model.add(
         ReflectionPad2d(
-            3, input_shape=(256, 256, 3)
+            3, input_shape=(input_size, input_size, 3)
         )
     )
     model.add(
@@ -72,13 +72,13 @@ def Generator(n_res_blocks=9):
     return model
 
 
-def Discriminator():
+def Discriminator(input_size=256):
     model = tf.keras.Sequential()
 
     model.add(
         tf.keras.layers.Conv2D(
             64, (4, 4), strides=(2, 2),
-            padding='same', input_shape=(256, 256, 3)
+            padding='same', input_shape=(input_size, input_size, 3)
         )
     )
     model.add(tf.keras.layers.LeakyReLU(alpha=0.2))
