@@ -70,3 +70,51 @@ def Generator(n_res_blocks=9):
     )
 
     return model
+
+
+def Discriminator():
+    model = tf.keras.Sequential()
+
+    model.add(
+        tf.keras.layers.Conv2D(
+            64, (4, 4), strides=(2, 2),
+            padding='same', input_shape=(256, 256, 3)
+        )
+    )
+    model.add(tf.keras.layers.LeakyReLU(alpha=0.2))
+
+    model.add(
+        tf.keras.layers.Conv2D(
+            128, (4, 4), strides=(2, 2),
+            padding='same', use_bias=False
+        )
+    )
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.LeakyReLU(alpha=0.2))
+
+    model.add(
+        tf.keras.layers.Conv2D(
+            256, (4, 4), strides=(2, 2),
+            padding='same', use_bias=False
+        )
+    )
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.LeakyReLU(alpha=0.2))
+
+    model.add(
+        tf.keras.layers.Conv2D(
+            512, (4, 4), strides=(1, 1),
+            padding='same', use_bias=False
+        )
+    )
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.LeakyReLU(alpha=0.2))
+
+    model.add(
+        tf.keras.layers.Conv2D(
+            1, (4, 4), strides=(1, 1),
+            padding='same'
+        )
+    )
+
+    return model
