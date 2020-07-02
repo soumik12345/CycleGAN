@@ -1,0 +1,6 @@
+.idea/
+data/horse2zebra/
+data/horses_extra_54/
+tfrecords/
+test.py
+.DS_Store
