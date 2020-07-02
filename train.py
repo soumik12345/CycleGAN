@@ -1,3 +1,4 @@
+import wandb
 from tqdm import tqdm
 import tensorflow as tf
 from src.utils import ImagePool
@@ -11,6 +12,12 @@ class Trainer:
 
     def __init__(self, configs):
         self.configs = configs
+
+        wandb.init(
+            project=self.configs['project_name'],
+            name=self.configs['experiment_name'],
+            sync_tensorboard=True
+        )
 
         self.fake_pool_b2a = ImagePool(self.configs['pool_size'])
         self.fake_pool_a2b = ImagePool(self.configs['pool_size'])
