@@ -88,3 +88,5 @@ def create_tfrecords(dataset_name):
 
     print('Generating TFRecord for TestB Images...')
     write_to_tfrecord(test_b_files, test_b_output)
+
+    return train_a_output, train_b_output, test_a_output, test_b_output
