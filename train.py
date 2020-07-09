@@ -275,8 +275,8 @@ class Trainer:
             'loss_dis_total': self.loss_dis_total_metrics.result(),
             'loss_cycle_a2b2a': self.loss_cycle_a2b2a_metrics.result(),
             'loss_cycle_b2a2b': self.loss_cycle_b2a2b_metrics.result(),
-            'gen_learning_rate': self.gen_lr_scheduler.current_learning_rate,
-            'dis_learning_rate': self.dis_lr_scheduler.current_learning_rate
+            'gen_learning_rate': self.generator_lr_scheduler.current_learning_rate,
+            'dis_learning_rate': self.discriminator_lr_scheduler.current_learning_rate
         })
         self.reset_metrics()
 
