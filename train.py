@@ -123,8 +123,12 @@ class Trainer:
         self.loss_id_b2a_metrics.reset_states()
 
     def make_checkpoints(self):
+        try:
+            os.mkdir(self.configs['checkpoint_dir'])
+        except:
+            print('Checkpoint Directory Exists')
         checkpoint_dir = os.path.join(
-            wandb.run.dir,
+            self.configs['checkpoint_dir'],
             './checkpoints-{}'.format(
                 self.configs['dataset_configs']['dataset_name']
             )
@@ -274,9 +278,7 @@ class Trainer:
             'loss_gen_total': self.loss_gen_total_metrics.result(),
             'loss_dis_total': self.loss_dis_total_metrics.result(),
             'loss_cycle_a2b2a': self.loss_cycle_a2b2a_metrics.result(),
-            'loss_cycle_b2a2b': self.loss_cycle_b2a2b_metrics.result(),
-            'gen_learning_rate': self.generator_lr_scheduler.current_learning_rate,
-            'dis_learning_rate': self.discriminator_lr_scheduler.current_learning_rate
+            'loss_cycle_b2a2b': self.loss_cycle_b2a2b_metrics.result()
         })
         self.reset_metrics()
 
@@ -307,6 +309,7 @@ if __name__ == '__main__':
         'epochs': 200,
         'decay_epochs': 100,
         'adam_beta_1': 0.5,
+        'checkpoint_dir': './checkpoints-horse2zebra',
         'dataset_configs': {
             'dataset_name': 'horse2zebra',
             'resize_size': 286,
