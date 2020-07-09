@@ -1,4 +1,5 @@
 import os
+from PIL import Image
 import tensorflow as tf
 from src.models import Generator
 
@@ -35,3 +36,34 @@ class Inferer:
             print("Restored from {}".format(manager.latest_checkpoint))
         else:
             print("Initializing from scratch.")
+
+    @staticmethod
+    def read_file(file_name):
+        with open(file_name, 'rb') as f:
+            content = f.read()
+        original = tf.image.decode_jpeg(content)
+        resized_original = tf.image.resize(original, (256, 256))
+        float_original = tf.cast(resized_original, tf.float32)
+        inputs = float_original / 127.5 - 1
+        inputs = tf.expand_dims(inputs, 0)
+        return original, inputs
+
+    def infer_a2b(self, file_name):
+        original, inputs = Inferer.read_file(file_name)
+        outputs = self.generator_a2b(inputs)
+        generated = outputs[0]
+        generated = (generated + 1) * 127.5
+        generated = tf.cast(generated, tf.uint8)
+        original = Image.fromarray(original.numpy())
+        generated = Image.fromarray(generated.numpy())
+        return original, generated
+
+    def infer_b2a(self, file_name):
+        original, inputs = Inferer.read_file(file_name)
+        outputs = self.generator_b2a(inputs)
+        generated = outputs[0]
+        generated = (generated + 1) * 127.5
+        generated = tf.cast(generated, tf.uint8)
+        original = Image.fromarray(original.numpy())
+        generated = Image.fromarray(generated.numpy())
+        return original, generated
